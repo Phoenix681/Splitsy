@@ -1,0 +1,103 @@
+// schema.prisma
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  password_hash String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt 
+
+  // Relations
+  group_memberships   GroupMember[]
+  expenses_paid       Expense[]     @relation("Payer")
+  expense_splits      ExpenseSplit[]
+  sent_settlements    Settlement[]  @relation("SentSettlements")
+  received_settlements Settlement[] @relation("ReceivedSettlements")
+
+  @@map("users") 
+}
+
+model Group {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  members     GroupMember[]
+  expenses    Expense[]
+  settlements Settlement[] 
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id        String   @id @default(uuid())
+  user_id   String
+  group_id  String
+  joined_at DateTime @default(now())
+
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade) 
+  group     Group    @relation(fields: [group_id], references: [id], onDelete: Cascade) 
+
+  @@unique([user_id, group_id])
+  @@map("group_members")
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  group_id    String
+  paid_by     String   
+  amount      Decimal  @db.Decimal(10, 2)
+  description String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  group       Group    @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  payer       User     @relation("Payer", fields: [paid_by], references: [id], onDelete: Restrict) 
+  splits      ExpenseSplit[]
+
+  @@index([group_id])
+  @@index([created_at])
+  @@map("expenses")
+}
+
+model ExpenseSplit {
+  id         String   @id @default(uuid())
+  expense_id String
+  user_id    String
+  amount     Decimal  @db.Decimal(10, 2)
+
+  expense    Expense  @relation(fields: [expense_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([expense_id])
+  @@index([user_id])
+  @@map("expense_splits")
+}
+
+model Settlement {
+  id         String   @id @default(uuid())
+  group_id   String
+  from_user  String
+  to_user    String
+  amount     Decimal  @db.Decimal(10, 2)
+  settled_at DateTime @default(now())
+
+  group      Group    @relation(fields: [group_id], references: [id], onDelete: Cascade) 
+  from       User     @relation("SentSettlements", fields: [from_user], references: [id], onDelete: Restrict)
+  to         User     @relation("ReceivedSettlements", fields: [to_user], references: [id], onDelete: Restrict)
+
+  @@index([group_id])
+  @@index([from_user, to_user]) 
+  @@map("settlements")
+}
