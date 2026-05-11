@@ -1,10 +1,10 @@
-import express from 'express';
-import type { Express, Request, Response } from 'express';
+import express, { type Express, type Request, type Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
+import authRoutes from './routes/authRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -13,14 +13,12 @@ dotenv.config();
 const app: Express = express();
 const PORT = process.env.PORT || 5000;
 
-// Initialize Prisma Client with PostgreSQL adapter
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
 const adapter = new PrismaPg(pool);
 export const prisma = new PrismaClient({ adapter });
-
 
 // Middleware
 app.use(cors({
@@ -29,6 +27,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use('/api/auth', authRoutes);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {

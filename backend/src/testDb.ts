@@ -2,11 +2,6 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 
-
-// 1. Initialize the client normally
-const basePrisma = new PrismaClient();
-
-// 2. Inject the URL using an extension
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
