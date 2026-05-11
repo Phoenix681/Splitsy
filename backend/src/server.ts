@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import authRoutes from './routes/authRoutes.js';
+import groupRoutes from './routes/groupRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -30,6 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/groups', groupRoutes);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {

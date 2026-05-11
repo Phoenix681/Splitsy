@@ -34,6 +34,26 @@ export interface AuthResponse {
   token: string;
 }
 
+// Create group request body
+export interface CreateGroupBody {
+  name: string;
+  description?: string;
+}
+
+// Add member request body
+export interface AddMemberBody {
+  email: string;
+}
+
+// Group with member count
+export interface GroupWithMembers {
+  id: string;
+  name: string;
+  description: string | null;
+  created_at: Date;
+  memberCount: number;
+}
+
 // Generic API error response
 export interface ErrorResponse {
   error: string;
