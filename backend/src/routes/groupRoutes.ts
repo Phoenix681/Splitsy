@@ -7,6 +7,11 @@ import {
   removeMemberFromGroup,
   deleteGroup,
 } from '../controllers/groupController.js';
+import {
+  getGroupBalances,
+  recordSettlement,
+  getSettlementHistory,
+} from '../controllers/balanceController.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
@@ -23,5 +28,10 @@ router.delete('/:groupId', deleteGroup); // Delete group
 // Member management
 router.post('/:groupId/members', addMemberToGroup);              // Add member
 router.delete('/:groupId/members/:memberId', removeMemberFromGroup); // Remove member
+
+// Balance & Settlements
+router.get('/:groupId/balances', getGroupBalances);       // Get balances & settlement suggestions
+router.post('/:groupId/settlements', recordSettlement);   // Record a settlement
+router.get('/:groupId/settlements', getSettlementHistory); // Get settlement history
 
 export default router;
