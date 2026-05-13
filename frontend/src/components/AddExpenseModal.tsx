@@ -1,0 +1,263 @@
+import React, { useState, useEffect } from 'react';
+import { expensesApi } from '../services/apiService';
+import type { GroupMember, User } from '../types';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { X } from 'lucide-react';
+
+interface AddExpenseModalProps {
+  groupId: string;
+  members: GroupMember[];
+  currentUser: User | null;
+  onClose: () => void;
+  onExpenseAdded: () => void;
+}
+
+export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
+  groupId,
+  members,
+  currentUser,
+  onClose,
+  onExpenseAdded,
+}) => {
+  const [description, setDescription] = useState('');
+  const [amount, setAmount] = useState('');
+  const [paidBy, setPaidBy] = useState(currentUser?.id || '');
+  const [splitType, setSplitType] = useState<'equal' | 'custom'>('equal');
+  const [splits, setSplits] = useState<{ [key: string]: string }>({});
+  const [splitAmong, setSplitAmong] = useState<string[]>(members.map(m => m.id));
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    // Initialize splits based on selected members
+    const newSplits: { [key: string]: string } = {};
+    splitAmong.forEach(memberId => {
+      newSplits[memberId] = splitType === 'equal'
+        ? (parseFloat(amount) / splitAmong.length || 0).toFixed(2)
+        : splits[memberId] || '0.00';
+    });
+    setSplits(newSplits);
+  }, [amount, splitType, splitAmong]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    // Validation
+    if (!description.trim()) {
+      setError('Description is required');
+      return;
+    }
+
+    if (!amount || parseFloat(amount) <= 0) {
+      setError('Amount must be greater than 0');
+      return;
+    }
+
+    if (!paidBy) {
+      setError('Please select who paid');
+      return;
+    }
+
+    if (splitAmong.length === 0) {
+      setError('Select at least one person for the split');
+      return;
+    }
+
+    if (splitType === 'custom') {
+      const totalSplit = Object.values(splits)
+        .reduce((sum, val) => sum + parseFloat(val || '0'), 0);
+      const totalAmount = parseFloat(amount);
+      const diff = Math.abs(totalSplit - totalAmount);
+      if (diff > 0.01) {
+        setError(
+          `Split amounts (₹${totalSplit.toFixed(2)}) must equal total (₹${totalAmount.toFixed(2)})`
+        );
+        return;
+      }
+    }
+
+    setLoading(true);
+    try {
+      await expensesApi.create(groupId, {
+        description: description.trim(),
+        amount: parseFloat(amount),
+        paid_by: paidBy,
+        split_type: splitType,
+        split_among: splitAmong,
+        splits: splitType === 'custom'
+          ? splitAmong.map(memberId => ({
+            user_id: memberId,
+            amount: parseFloat(splits[memberId] || '0'),
+          }))
+          : undefined,
+      });
+
+      onExpenseAdded();
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || 'Failed to add expense');
+      setLoading(false);
+    }
+  };
+
+  const handleSplitAmongToggle = (memberId: string) => {
+    setSplitAmong(prev =>
+      prev.includes(memberId)
+        ? prev.filter(id => id !== memberId)
+        : [...prev, memberId]
+    );
+  };
+
+  const handleCustomSplitChange = (memberId: string, value: string) => {
+    setSplits(prev => ({
+      ...prev,
+      [memberId]: value,
+    }));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-lg max-w-md w-full max-h-screen overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
+          <h2 className="text-xl font-bold">Add Expense</h2>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {error && (
+            <div className="bg-destructive/15 text-destructive px-4 py-3 rounded-md text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Description */}
+          <Input
+            label="Description *"
+            type="text"
+            placeholder="e.g., Dinner, Groceries"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            disabled={loading}
+          />
+
+          {/* Amount */}
+          <Input
+            label="Amount (₹) *"
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="0.00"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            disabled={loading}
+          />
+
+          {/* Paid By */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Paid By *</label>
+            <select
+              value={paidBy}
+              onChange={(e) => setPaidBy(e.target.value)}
+              disabled={loading}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="">Select member...</option>
+              {members.map(member => (
+                <option key={member.id} value={member.id}>
+                  {member.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Split Type */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Split Type</label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value="equal"
+                  checked={splitType === 'equal'}
+                  onChange={(e) => setSplitType(e.target.value as 'equal' | 'custom')}
+                  disabled={loading}
+                />
+                <span>Equal</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value="custom"
+                  checked={splitType === 'custom'}
+                  onChange={(e) => setSplitType(e.target.value as 'equal' | 'custom')}
+                  disabled={loading}
+                />
+                <span>Custom</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Split Among */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Split Among</label>
+            <div className="space-y-2 bg-gray-50 p-3 rounded-md max-h-40 overflow-y-auto">
+              {members.map(member => (
+                <label key={member.id} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={splitAmong.includes(member.id)}
+                    onChange={() => handleSplitAmongToggle(member.id)}
+                    disabled={loading}
+                  />
+                  <span className="flex-1">{member.name}</span>
+                  {splitType === 'custom' && splitAmong.includes(member.id) && (
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max={amount}
+                      value={splits[member.id] || '0.00'}
+                      onChange={(e) => handleCustomSplitChange(member.id, e.target.value)}
+                      disabled={loading}
+                      className="w-20 h-8 rounded-md border border-input px-2 py-1 text-sm"
+                      placeholder="0.00"
+                    />
+                  )}
+                  {splitType === 'equal' && splitAmong.includes(member.id) && (
+                    <span className="text-sm text-muted-foreground">
+                      ₹{splits[member.id] || '0.00'}
+                    </span>
+                  )}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-3 justify-end pt-4 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Adding...' : 'Add Expense'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
