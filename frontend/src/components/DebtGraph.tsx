@@ -163,8 +163,8 @@ export const DebtGraph: React.FC<DebtGraphProps> = ({ balances, settlements }) =
 
   if (settlements.length === 0) {
     return (
-      <div className="h-96 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-gray-500 text-center">
+      <div className="h-96 flex items-center justify-center bg-white/5 rounded-lg border border-white/20">
+        <p className="text-gray-400 text-center">
           No debts to visualize. Everyone is settled up! 🎉
         </p>
       </div>
@@ -183,16 +183,16 @@ export const DebtGraph: React.FC<DebtGraphProps> = ({ balances, settlements }) =
           <span>Owes money</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-1 h-6 bg-blue-500"></div>
+          <div className="w-1 h-6 bg-green-500"></div>
           <span>Payment flow</span>
         </div>
       </div>
       <div
         ref={containerRef}
-        className="h-96 border rounded-lg bg-white shadow-sm"
+        className="h-96 border border-white/20 rounded-lg bg-white/10 backdrop-blur-md shadow-sm"
         style={{ height: '400px' }}
       />
-      <p className="text-xs text-gray-500 text-center">
+      <p className="text-xs text-gray-400 text-center">
         Drag nodes to reposition • Scroll to zoom • Click and drag background to pan
       </p>
     </div>

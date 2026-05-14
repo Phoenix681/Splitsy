@@ -11,8 +11,8 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities }
   if (!activities || activities.length === 0) {
     return (
       <div className="text-center py-12">
-        <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-        <p className="text-muted-foreground">No activity yet</p>
+        <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4 opacity-50" />
+        <p className="text-gray-400">No activity yet</p>
       </div>
     );
   }
@@ -36,7 +36,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities }
             {/* Timeline line and dot */}
             <div className="flex flex-col items-center">
               <div className={`flex items-center justify-center w-10 h-10 rounded-full text-white flex-shrink-0 ${
-                isExpense ? 'bg-blue-500' : 'bg-green-500'
+                isExpense ? 'bg-green-500' : 'bg-green-500'
               }`}>
                 {isExpense ? (
                   <Plus className="h-5 w-5" />
@@ -51,23 +51,23 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities }
 
             {/* Content */}
             <div className="pb-8 flex-1">
-              <div className="bg-white rounded-lg border p-4">
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4">
                 <div className="flex items-start justify-between">
                   <div>
                     {isExpense ? (
                       <>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-white">
                           {activity.payer?.name || 'Unknown'} added an expense
                         </p>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-300 mt-1">
                           {activity.description}
                         </p>
                         <div className="mt-2 flex items-center gap-2 flex-wrap">
-                          <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                          <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded border border-green-500/30">
                             ₹{parseFloat(activity.amount).toFixed(2)}
                           </span>
                           {activity.splits && activity.splits.length > 0 && (
-                            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                            <span className="text-xs bg-white/10 text-gray-300 px-2 py-1 rounded border border-white/20">
                               Split among {activity.splits.length} people
                             </span>
                           )}
@@ -75,14 +75,14 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities }
                       </>
                     ) : (
                       <>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-white">
                           {activity.from?.name || 'Unknown'} settled with {activity.to?.name || 'Unknown'}
                         </p>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-300 mt-1">
                           Payment recorded
                         </p>
                         <div className="mt-2 flex items-center gap-2 flex-wrap">
-                          <span className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded">
+                          <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded border border-green-500/30">
                             ₹{parseFloat(activity.amount).toFixed(2)}
                           </span>
                         </div>
@@ -90,10 +90,10 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities }
                     )}
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-xs text-muted-foreground whitespace-nowrap">
+                    <p className="text-xs text-gray-400 whitespace-nowrap">
                       {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-400 mt-1">
                       {format(new Date(timestamp), 'MMM d, yyyy')}
                     </p>
                   </div>

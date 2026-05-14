@@ -52,15 +52,15 @@ export const BalanceView: React.FC<BalanceViewProps> = ({ balances, groupId, onS
                 return (
                   <div
                     key={idx}
-                    className="flex items-center justify-between gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200"
+                    className="flex items-center justify-between gap-4 p-4 bg-green-500/20 rounded-lg border border-green-500/50"
                   >
                     <div className="flex-1">
-                      <p className="font-medium">
-                        <span className="text-blue-900">{settlement.from_user_name}</span>
-                        <span className="text-gray-500 mx-2">pays</span>
-                        <span className="text-blue-900">{settlement.to_user_name}</span>
+                      <p className="font-medium text-green-300">
+                        <span>{settlement.from_user_name}</span>
+                        <span className="text-gray-400 mx-2">pays</span>
+                        <span>{settlement.to_user_name}</span>
                       </p>
-                      <p className="text-lg font-bold text-green-600 mt-1">
+                      <p className="text-lg font-bold text-green-400 mt-1">
                         ₹{amount.toFixed(2)}
                       </p>
                     </div>
@@ -114,8 +114,8 @@ export const BalanceView: React.FC<BalanceViewProps> = ({ balances, groupId, onS
                     key={balance.user_id}
                     className={`flex items-center justify-between p-4 rounded-lg border ${
                       isPositive
-                        ? 'bg-green-50 border-green-200'
-                        : 'bg-red-50 border-red-200'
+                        ? 'bg-green-500/20 border-green-500/50'
+                        : 'bg-red-500/20 border-red-500/50'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -123,14 +123,14 @@ export const BalanceView: React.FC<BalanceViewProps> = ({ balances, groupId, onS
                         isPositive ? 'bg-green-500' : 'bg-red-500'
                       }`} />
                       <div>
-                        <p className="font-medium">{balance.user_name}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className={`font-medium ${isPositive ? 'text-green-300' : 'text-red-300'}`}>{balance.user_name}</p>
+                        <p className="text-xs text-gray-400">
                           {isPositive ? 'is owed' : 'owes'}
                         </p>
                       </div>
                     </div>
                     <p className={`text-lg font-bold ${
-                      isPositive ? 'text-green-600' : 'text-red-600'
+                      isPositive ? 'text-green-400' : 'text-red-400'
                     }`}>
                       ₹{balanceAmount.toFixed(2)}
                     </p>
@@ -146,23 +146,23 @@ export const BalanceView: React.FC<BalanceViewProps> = ({ balances, groupId, onS
       {balances.expense_breakdown && balances.expense_breakdown.length > 0 && (
         <Card>
           <div
-            className="cursor-pointer hover:bg-gray-50 p-6 border-b transition-colors"
+            className="cursor-pointer hover:bg-white/15 p-6 border-b border-white/20 transition-colors"
             onClick={() => setExpandedBreakdown(!expandedBreakdown)}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
+                <BarChart3 className="h-5 w-5 text-green-400" />
                 <div>
-                  <h3 className="font-semibold text-base">Expense Breakdown</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <h3 className="font-semibold text-base text-white">Expense Breakdown</h3>
+                  <p className="text-sm text-gray-400 mt-1">
                     How much each person paid vs how much they owe
                   </p>
                 </div>
               </div>
               {expandedBreakdown ? (
-                <ChevronUp className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                <ChevronUp className="h-5 w-5 text-gray-400 flex-shrink-0" />
               ) : (
-                <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                <ChevronDown className="h-5 w-5 text-gray-400 flex-shrink-0" />
               )}
             </div>
           </div>
@@ -170,7 +170,7 @@ export const BalanceView: React.FC<BalanceViewProps> = ({ balances, groupId, onS
           {expandedBreakdown && (
             <CardContent>
               {balances.expense_breakdown.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No expense data</p>
+                <p className="text-gray-400 text-center py-8">No expense data</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -196,23 +196,23 @@ export const BalanceView: React.FC<BalanceViewProps> = ({ balances, groupId, onS
                         const isPositive = netBalance > 0;
 
                         return (
-                          <tr key={breakdown.user_id} className="border-b hover:bg-gray-50">
+                          <tr key={breakdown.user_id} className="border-b border-white/20 hover:bg-white/10 text-white">
                             <td className="py-3 px-4 font-medium">
                               {breakdown.user_name}
                             </td>
                             <td className="text-right py-3 px-4">
-                              <span className="text-green-600 font-semibold">
+                              <span className="text-green-400 font-semibold">
                                 ₹{totalPaid.toFixed(2)}
                               </span>
                             </td>
                             <td className="text-right py-3 px-4">
-                              <span className="text-red-600 font-semibold">
+                              <span className="text-red-400 font-semibold">
                                 ₹{totalOwed.toFixed(2)}
                               </span>
                             </td>
                             <td className="text-right py-3 px-4">
                               <span className={`font-bold ${
-                                isPositive ? 'text-green-600' : 'text-red-600'
+                                isPositive ? 'text-green-400' : 'text-red-400'
                               }`}>
                                 {isPositive ? '+' : '-'}₹{Math.abs(netBalance).toFixed(2)}
                               </span>

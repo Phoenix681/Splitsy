@@ -62,14 +62,14 @@ export const RemoveMemberModal: React.FC<RemoveMemberModalProps> = ({
       />
 
       {/* Modal */}
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg z-50 w-full max-w-md p-6">
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg shadow-lg z-50 w-full max-w-md p-6">
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0">
             <AlertTriangle className="h-6 w-6 text-red-600" />
           </div>
           <div className="flex-1">
-            <h2 className="text-lg font-bold mb-2">Remove Member?</h2>
-            <p className="text-gray-600 mb-4">
+            <h2 className="text-lg font-bold mb-2 text-white">Remove Member?</h2>
+            <p className="text-gray-300 mb-4">
               Are you sure you want to remove <strong>{memberName}</strong> from this group? They will no longer be able to see or participate in this group's expenses.
             </p>
 
@@ -78,7 +78,7 @@ export const RemoveMemberModal: React.FC<RemoveMemberModalProps> = ({
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="flex-1"
+                className="flex-1 border-white/20 text-gray-300 hover:bg-white/10"
               >
                 Cancel
               </Button>
@@ -94,7 +94,7 @@ export const RemoveMemberModal: React.FC<RemoveMemberModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1 hover:bg-white/10 rounded-lg transition-colors text-gray-300"
           >
             <X className="h-5 w-5" />
           </button>

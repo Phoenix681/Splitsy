@@ -36,15 +36,15 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 px-4">
+      <Card className="w-full max-w-md bg-white/10 backdrop-blur-md border-white/20">
         <CardHeader>
-          <CardTitle>Create an account</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-white">Create an account</CardTitle>
+          <CardDescription className="text-gray-300">
             Join Splitsy to start splitting expenses with friends
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="text-gray-300">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-destructive/15 text-destructive px-4 py-3 rounded-md text-sm">
@@ -85,13 +85,13 @@ export const RegisterPage: React.FC = () => {
               required
             />
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white" disabled={loading}>
               {loading ? 'Creating account...' : 'Create Account'}
             </Button>
 
-            <p className="text-center text-sm text-muted-foreground">
+            <p className="text-center text-sm text-gray-400">
               Already have an account?{' '}
-              <Link to="/login" className="text-primary hover:underline">
+              <Link to="/login" className="text-green-400 hover:text-green-300 hover:underline">
                 Sign in
               </Link>
             </p>

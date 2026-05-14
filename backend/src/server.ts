@@ -25,7 +25,16 @@ const httpServer = createServer(app);
 // Initialize Socket.io with CORS
 export const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      // Allow localhost on any port in development
+      if (!origin || origin.startsWith('http://localhost:')) {
+        callback(null, true);
+      } else if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+        callback(null, true);
+      } else {
+        callback(new Error('CORS not allowed'));
+      }
+    },
     credentials: true,
   },
 });
@@ -39,7 +48,16 @@ export const prisma = new PrismaClient({ adapter });
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow localhost on any port in development
+    if (!origin || origin.startsWith('http://localhost:')) {
+      callback(null, true);
+    } else if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());

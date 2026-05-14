@@ -61,46 +61,56 @@ export const ExpensesFilters: React.FC<ExpensesFiltersProps> = ({
   const hasActiveFilters = !!(searchQuery || selectedPerson || dateFrom || dateTo);
 
   return (
-    <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
+    <div className="space-y-4 p-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Search */}
-        <Input
-          placeholder="Search by description..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+        <div>
+          <label className="block text-xs text-gray-400 mb-2">Search</label>
+          <Input
+            placeholder="Search by description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
 
         {/* Person filter */}
-        <select
-          value={selectedPerson}
-          onChange={(e) => setSelectedPerson(e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="">All members</option>
-          {members.map((member) => (
-            <option key={member.id} value={member.id}>
-              Paid by {member.name}
-            </option>
-          ))}
-        </select>
+        <div>
+          <label className="block text-xs text-gray-400 mb-2">Member</label>
+          <select
+            value={selectedPerson}
+            onChange={(e) => setSelectedPerson(e.target.value)}
+            className="flex h-10 w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm text-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <option value="">All members</option>
+            {members.map((member) => (
+              <option key={member.id} value={member.id}>
+                Paid by {member.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Date From */}
-        <input
-          type="date"
-          value={dateFrom}
-          onChange={(e) => setDateFrom(e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder="From date"
-        />
+        <div>
+          <label className="block text-xs text-gray-400 mb-2">From Date</label>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="flex h-10 w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        </div>
 
         {/* Date To */}
-        <input
-          type="date"
-          value={dateTo}
-          onChange={(e) => setDateTo(e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder="To date"
-        />
+        <div>
+          <label className="block text-xs text-gray-400 mb-2">To Date</label>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="flex h-10 w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        </div>
       </div>
 
       {/* Clear filters button */}
@@ -112,7 +122,7 @@ export const ExpensesFilters: React.FC<ExpensesFiltersProps> = ({
             setDateFrom('');
             setDateTo('');
           }}
-          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors"
+          className="flex items-center gap-2 text-sm text-green-500 hover:text-green-400 transition-colors"
         >
           <X className="h-4 w-4" />
           Clear all filters

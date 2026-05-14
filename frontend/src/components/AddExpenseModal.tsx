@@ -145,13 +145,13 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full max-h-screen overflow-y-auto">
+      <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg shadow-lg max-w-md w-full max-h-screen overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
-          <h2 className="text-xl font-bold">Add Expense</h2>
+        <div className="flex items-center justify-between p-6 border-b border-white/20 sticky top-0 bg-white/10 backdrop-blur-md">
+          <h2 className="text-xl font-bold text-white">Add Expense</h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+            className="p-1 hover:bg-white/10 rounded-md transition-colors text-gray-300"
           >
             <X className="h-5 w-5" />
           </button>
@@ -160,7 +160,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="bg-destructive/15 text-destructive px-4 py-3 rounded-md text-sm">
+            <div className="bg-red-500/20 border border-red-500/50 text-red-300 px-4 py-3 rounded-md text-sm">
               {error}
             </div>
           )}
@@ -189,16 +189,16 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
           {/* Paid By */}
           <div>
-            <label className="block text-sm font-medium mb-2">Paid By *</label>
+            <label className="block text-sm font-medium mb-2 text-gray-300">Paid By *</label>
             <select
               value={paidBy}
               onChange={(e) => setPaidBy(e.target.value)}
               disabled={loading}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full rounded-md border border-white/20 bg-white/10 text-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <option value="">Select member...</option>
+              <option value="" className="bg-slate-900">Select member...</option>
               {members.map(member => (
-                <option key={member.id} value={member.id}>
+                <option key={member.id} value={member.id} className="bg-slate-900 text-white">
                   {member.name}
                 </option>
               ))}
@@ -207,7 +207,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
           {/* Split Type */}
           <div>
-            <label className="block text-sm font-medium mb-2">Split Type</label>
+            <label className="block text-sm font-medium mb-2 text-gray-300">Split Type</label>
             <div className="flex flex-col gap-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -217,7 +217,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                   onChange={(e) => setSplitType(e.target.value as 'equal' | 'custom' | 'percentage')}
                   disabled={loading}
                 />
-                <span>Equal split</span>
+                <span className="text-gray-300">Equal split</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -227,7 +227,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                   onChange={(e) => setSplitType(e.target.value as 'equal' | 'custom' | 'percentage')}
                   disabled={loading}
                 />
-                <span>Percentage split</span>
+                <span className="text-gray-300">Percentage split</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -237,15 +237,15 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                   onChange={(e) => setSplitType(e.target.value as 'equal' | 'custom' | 'percentage')}
                   disabled={loading}
                 />
-                <span>Custom amounts</span>
+                <span className="text-gray-300">Custom amounts</span>
               </label>
             </div>
           </div>
 
           {/* Split Among */}
           <div>
-            <label className="block text-sm font-medium mb-2">Split Among</label>
-            <div className="space-y-2 bg-gray-50 p-3 rounded-md max-h-40 overflow-y-auto">
+            <label className="block text-sm font-medium mb-2 text-gray-300">Split Among</label>
+            <div className="space-y-2 bg-white/10 border border-white/20 p-3 rounded-md max-h-40 overflow-y-auto">
               {members.map(member => (
                 <div key={member.id} className="flex items-center gap-2">
                   <input
@@ -290,13 +290,13 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                       value={splits[member.id] || '0.00'}
                       onChange={(e) => handleCustomSplitChange(member.id, e.target.value)}
                       disabled={loading}
-                      className="w-20 h-8 rounded-md border border-input px-2 py-1 text-sm"
+                      className="w-20 h-8 rounded-md border border-white/20 bg-white/10 text-white px-2 py-1 text-sm placeholder:text-gray-500"
                       placeholder="0.00"
                     />
                   )}
 
                   {splitType === 'equal' && splitAmong.includes(member.id) && (
-                    <span className="text-sm text-gray-500">₹{splits[member.id] || '0.00'}</span>
+                    <span className="text-sm text-gray-400">₹{splits[member.id] || '0.00'}</span>
                   )}
                 </div>
               ))}
@@ -304,16 +304,17 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-3 justify-end pt-4 border-t">
+          <div className="flex gap-3 justify-end pt-4 border-t border-white/20">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
               disabled={loading}
+              className="border-white/20 text-gray-300 hover:bg-white/10"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white">
               {loading ? 'Adding...' : 'Add Expense'}
             </Button>
           </div>

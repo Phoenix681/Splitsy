@@ -75,12 +75,12 @@ export const RecordSettlementModal: React.FC<RecordSettlementModalProps> = ({
       />
 
       {/* Modal */}
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg z-50 w-full max-w-md p-6">
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg shadow-lg z-50 w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Record Settlement</h2>
+          <h2 className="text-xl font-bold text-white">Record Settlement</h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1 hover:bg-white/10 rounded-lg transition-colors text-gray-300"
           >
             <X className="h-5 w-5" />
           </button>
@@ -88,21 +88,21 @@ export const RecordSettlementModal: React.FC<RecordSettlementModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">From</label>
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="font-medium">{settlement.from_user_name}</p>
+            <label className="block text-sm font-medium mb-2 text-gray-300">From</label>
+            <div className="p-3 bg-white/10 border border-white/20 rounded-lg">
+              <p className="font-medium text-white">{settlement.from_user_name}</p>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">To</label>
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="font-medium">{settlement.to_user_name}</p>
+            <label className="block text-sm font-medium mb-2 text-gray-300">To</label>
+            <div className="p-3 bg-white/10 border border-white/20 rounded-lg">
+              <p className="font-medium text-white">{settlement.to_user_name}</p>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Amount (₹)</label>
+            <label className="block text-sm font-medium mb-2 text-gray-300">Amount (₹)</label>
             <Input
               type="number"
               step="0.01"
@@ -110,7 +110,7 @@ export const RecordSettlementModal: React.FC<RecordSettlementModalProps> = ({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className="w-full"
+              className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-500"
             />
           </div>
 
@@ -119,14 +119,14 @@ export const RecordSettlementModal: React.FC<RecordSettlementModalProps> = ({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1"
+              className="flex-1 border-white/20 text-gray-300 hover:bg-white/10"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
             >
               {isLoading ? 'Recording...' : 'Record Settlement'}
             </Button>

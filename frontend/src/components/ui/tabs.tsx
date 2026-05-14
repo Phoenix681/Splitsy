@@ -29,7 +29,7 @@ export const Tabs: React.FC<TabsProps> = ({
   return (
     <div>
       {/* Tab Headers */}
-      <div className="border-b bg-white">
+      <div className="border-b border-white/20 bg-white/5">
         <div className="flex gap-8 px-6">
           {tabs.map((tab) => (
             <button
@@ -37,8 +37,8 @@ export const Tabs: React.FC<TabsProps> = ({
               onClick={() => handleTabClick(tab.id)}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === tab.id
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-gray-900 hover:border-gray-300'
+                  ? 'border-green-500 text-green-400'
+                  : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
               }`}
             >
               <div className="flex items-center gap-2">

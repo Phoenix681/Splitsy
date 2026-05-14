@@ -56,13 +56,13 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
+      <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg shadow-lg max-w-md w-full">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold">Add Member</h2>
+        <div className="flex items-center justify-between p-6 border-b border-white/20 bg-white/10 backdrop-blur-md">
+          <h2 className="text-xl font-bold text-white">Add Member</h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+            className="p-1 hover:bg-white/10 rounded-md transition-colors text-gray-300"
           >
             <X className="h-5 w-5" />
           </button>
@@ -71,19 +71,19 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="bg-destructive/15 text-destructive px-4 py-3 rounded-md text-sm">
+            <div className="bg-red-500/20 border border-red-500/50 text-red-300 px-4 py-3 rounded-md text-sm">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="bg-green-50 text-green-700 px-4 py-3 rounded-md text-sm border border-green-200">
+            <div className="bg-green-500/20 border border-green-500/50 text-green-300 px-4 py-3 rounded-md text-sm">
               {success}
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-medium mb-2 text-gray-300">
               Member Email Address *
             </label>
             <Input
@@ -92,24 +92,26 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
+              className="bg-white/10 border-white/20 text-white placeholder:text-gray-500"
             />
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-gray-400 mt-2">
               Enter the email address of the person you want to add to this group.
               They'll be notified and can start splitting expenses.
             </p>
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-3 justify-end pt-4 border-t">
+          <div className="flex gap-3 justify-end pt-4 border-t border-white/20">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
               disabled={loading}
+              className="border-white/20 text-gray-300 hover:bg-white/10"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white">
               {loading ? 'Adding...' : 'Add Member'}
             </Button>
           </div>

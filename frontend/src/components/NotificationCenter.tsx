@@ -40,7 +40,7 @@ export const NotificationCenter: React.FC = () => {
               ? 'bg-red-50 border-red-200 text-red-800'
               : notification.type === 'warning'
               ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
-              : 'bg-blue-50 border-blue-200 text-blue-800'
+              : 'bg-green-50 border-green-200 text-green-800'
           }`}
         >
           {/* Icon */}
@@ -55,7 +55,7 @@ export const NotificationCenter: React.FC = () => {
               <AlertTriangle className="h-5 w-5 text-yellow-600" />
             )}
             {notification.type === 'info' && (
-              <InfoIcon className="h-5 w-5 text-blue-600" />
+              <InfoIcon className="h-5 w-5 text-green-600" />
             )}
           </div>
 
