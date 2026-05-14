@@ -1,5 +1,7 @@
 # Splitsy - Expense Splitting & Debt Management Platform
 
+**🚀 Live Demo: [https://splitsy-two.vercel.app/](https://splitsy-two.vercel.app/)**
+
 A full-stack TypeScript application for managing shared expenses among groups, tracking debts, and settling payments in real-time. Built with modern web technologies and real-time WebSocket communication.
 
 ---
