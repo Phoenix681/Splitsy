@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import type { BalanceResponse } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
-import { ChevronDown, ChevronUp, TrendingUp, TrendingDown } from 'lucide-react';
+import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 
 interface BalanceViewProps {
   balances: BalanceResponse;
 }
 
 export const BalanceView: React.FC<BalanceViewProps> = ({ balances }) => {
-  const [expandedBreakdown, setExpandedBreakdown] = useState(false);
+  const [expandedBreakdown, setExpandedBreakdown] = useState(true);
 
   if (!balances) {
     return null;
@@ -114,52 +114,85 @@ export const BalanceView: React.FC<BalanceViewProps> = ({ balances }) => {
       {/* Expense Breakdown */}
       {balances.expense_breakdown && balances.expense_breakdown.length > 0 && (
         <Card>
-          <CardHeader
-            className="cursor-pointer hover:bg-gray-50"
+          <div
+            className="cursor-pointer hover:bg-gray-50 p-6 border-b transition-colors"
             onClick={() => setExpandedBreakdown(!expandedBreakdown)}
           >
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Expense Breakdown</CardTitle>
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                <div>
+                  <h3 className="font-semibold text-base">Expense Breakdown</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    How much each person paid vs how much they owe
+                  </p>
+                </div>
+              </div>
               {expandedBreakdown ? (
-                <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                <ChevronUp className="h-5 w-5 text-muted-foreground flex-shrink-0" />
               ) : (
-                <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
               )}
             </div>
-          </CardHeader>
+          </div>
 
           {expandedBreakdown && (
             <CardContent>
-              <div className="space-y-4">
-                {balances.expense_breakdown.map((breakdown) => {
-                  const totalPaid = typeof breakdown.total_paid === 'string'
-                    ? parseFloat(breakdown.total_paid)
-                    : breakdown.total_paid;
-                  const totalOwed = typeof breakdown.total_owed === 'string'
-                    ? parseFloat(breakdown.total_owed)
-                    : breakdown.total_owed;
+              {balances.expense_breakdown.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No expense data</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-3 px-4 font-semibold">Member</th>
+                        <th className="text-right py-3 px-4 font-semibold">Total Paid</th>
+                        <th className="text-right py-3 px-4 font-semibold">Total Owed</th>
+                        <th className="text-right py-3 px-4 font-semibold">Net Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {balances.expense_breakdown.map((breakdown) => {
+                        const totalPaid = typeof breakdown.total_paid === 'string'
+                          ? parseFloat(breakdown.total_paid)
+                          : breakdown.total_paid;
+                        const totalOwed = typeof breakdown.total_owed === 'string'
+                          ? parseFloat(breakdown.total_owed)
+                          : breakdown.total_owed;
+                        const netBalance = typeof breakdown.net_balance === 'string'
+                          ? parseFloat(breakdown.net_balance)
+                          : breakdown.net_balance;
+                        const isPositive = netBalance > 0;
 
-                  return (
-                    <div key={breakdown.user_id} className="border-b pb-4 last:border-b-0">
-                      <p className="font-medium mb-3">{breakdown.user_name}</p>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-muted-foreground">Total Paid</p>
-                          <p className="text-lg font-semibold text-green-600">
-                            ₹{totalPaid.toFixed(2)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Total Owed</p>
-                          <p className="text-lg font-semibold text-red-600">
-                            ₹{totalOwed.toFixed(2)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                        return (
+                          <tr key={breakdown.user_id} className="border-b hover:bg-gray-50">
+                            <td className="py-3 px-4 font-medium">
+                              {breakdown.user_name}
+                            </td>
+                            <td className="text-right py-3 px-4">
+                              <span className="text-green-600 font-semibold">
+                                ₹{totalPaid.toFixed(2)}
+                              </span>
+                            </td>
+                            <td className="text-right py-3 px-4">
+                              <span className="text-red-600 font-semibold">
+                                ₹{totalOwed.toFixed(2)}
+                              </span>
+                            </td>
+                            <td className="text-right py-3 px-4">
+                              <span className={`font-bold ${
+                                isPositive ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {isPositive ? '+' : '-'}₹{Math.abs(netBalance).toFixed(2)}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           )}
         </Card>

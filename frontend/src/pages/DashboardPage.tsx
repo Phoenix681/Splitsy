@@ -89,6 +89,42 @@ export const DashboardPage: React.FC = () => {
           </div>
         )}
 
+        {/* Summary Stats */}
+        {groups.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card>
+              <CardHeader>
+                <CardDescription>Total Groups</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">{groups.length}</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardDescription>Total Members</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">
+                  {groups.reduce((sum, g) => sum + (g.memberCount || 0), 0)}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardDescription>Active Groups</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">
+                  {groups.filter(g => (g.memberCount || 0) > 0).length}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {groups.length === 0 ? (
           <Card>
             <CardContent className="py-16 text-center">

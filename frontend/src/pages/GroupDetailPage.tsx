@@ -5,11 +5,15 @@ import { groupsApi, expensesApi, balancesApi } from '../services/apiService';
 import type { Group, Expense, BalanceResponse } from '../types';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
-import { ArrowLeft, Plus, DollarSign, Users } from 'lucide-react';
+import { Tabs, TabContent } from '../components/ui/tabs';
+import { ArrowLeft, Plus, DollarSign, Users, Clock } from 'lucide-react';
 import { AddExpenseModal } from '../components/AddExpenseModal';
+import { AddMemberModal } from '../components/AddMemberModal';
 import { BalanceView } from '../components/BalanceView';
 import { ExpensesList } from '../components/ExpensesList';
+import { ExpensesFilters } from '../components/ExpensesFilters';
 import { MembersList } from '../components/MembersList';
+import { ActivityTimeline } from '../components/ActivityTimeline';
 
 export const GroupDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,10 +22,12 @@ export const GroupDetailPage: React.FC = () => {
 
   const [group, setGroup] = useState<Group | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
   const [balances, setBalances] = useState<BalanceResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
 
   const fetchGroupData = async () => {
     if (!groupId) {
@@ -62,6 +68,11 @@ export const GroupDetailPage: React.FC = () => {
   const handleExpenseAdded = async () => {
     setShowAddExpenseModal(false);
     await fetchGroupData(); // Refresh data after expense added
+  };
+
+  const handleMemberAdded = async () => {
+    setShowAddMemberModal(false);
+    await fetchGroupData(); // Refresh data after member added
   };
 
   if (loading) {
@@ -125,10 +136,19 @@ export const GroupDetailPage: React.FC = () => {
                 )}
               </div>
             </div>
-            <Button onClick={() => setShowAddExpenseModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Expense
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowAddMemberModal(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Member
+              </Button>
+              <Button onClick={() => setShowAddExpenseModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Expense
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -177,51 +197,101 @@ export const GroupDetailPage: React.FC = () => {
           </div>
         )}
 
-        {/* Balances and Settlements */}
-        {balances && <BalanceView balances={balances} />}
+        {/* Tabs */}
+        <Card>
+          <Tabs
+            tabs={[
+              { id: 'expenses', label: 'Expenses', icon: <DollarSign className="h-4 w-4" /> },
+              { id: 'balances', label: 'Balances', icon: <Users className="h-4 w-4" /> },
+              { id: 'activity', label: 'Activity', icon: <Clock className="h-4 w-4" /> },
+            ]}
+            defaultTab="expenses"
+          >
+            {/* Expenses Tab */}
+            <TabContent tabId="expenses">
+              <CardContent className="pt-6">
+                <div className="space-y-6">
+                  {/* Filters */}
+                  {group?.members && (
+                    <ExpensesFilters
+                      expenses={expenses}
+                      members={group.members}
+                      onFiltered={setFilteredExpenses}
+                    />
+                  )}
 
-        {/* Members and Expenses Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-          {/* Members Section */}
-          <div className="lg:col-span-1">
-            {group.members && group.members.length > 0 && (
-              <MembersList members={group.members} />
-            )}
-          </div>
+                  {/* Expenses List */}
+                  {filteredExpenses.length === 0 ? (
+                    <div className="text-center py-12">
+                      <DollarSign className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                      <p className="text-muted-foreground mb-4">
+                        {expenses.length === 0 ? 'No expenses yet' : 'No expenses match your filters'}
+                      </p>
+                      {expenses.length === 0 && (
+                        <Button
+                          size="sm"
+                          onClick={() => setShowAddExpenseModal(true)}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add First Expense
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <ExpensesList expenses={filteredExpenses} />
+                  )}
+                </div>
+              </CardContent>
+            </TabContent>
 
-          {/* Expenses Section */}
-          <div className="lg:col-span-2">
+            {/* Balances Tab */}
+            <TabContent tabId="balances">
+              <CardContent className="pt-6">
+                {balances ? (
+                  <BalanceView balances={balances} />
+                ) : (
+                  <p className="text-muted-foreground">Loading balances...</p>
+                )}
+              </CardContent>
+            </TabContent>
+
+            {/* Activity Tab */}
+            <TabContent tabId="activity">
+              <CardContent className="pt-6">
+                <ActivityTimeline expenses={expenses} />
+              </CardContent>
+            </TabContent>
+          </Tabs>
+        </Card>
+
+        {/* Members Section */}
+        {group?.members && group.members.length > 0 && (
+          <div className="mt-8">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Expenses</CardTitle>
-                    <CardDescription>
-                      {expenses.length} expense{expenses.length !== 1 ? 's' : ''} recorded
-                    </CardDescription>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-muted-foreground" />
+                    <CardTitle className="text-lg">
+                      Members ({group.members.length})
+                    </CardTitle>
                   </div>
-                  <DollarSign className="h-5 w-5 text-muted-foreground" />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowAddMemberModal(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Member
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
-                {expenses.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-muted-foreground mb-4">No expenses yet</p>
-                    <Button
-                      size="sm"
-                      onClick={() => setShowAddExpenseModal(true)}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add First Expense
-                    </Button>
-                  </div>
-                ) : (
-                  <ExpensesList expenses={expenses} />
-                )}
+                <MembersList members={group.members} />
               </CardContent>
             </Card>
           </div>
-        </div>
+        )}
       </main>
 
       {/* Add Expense Modal */}
@@ -232,6 +302,15 @@ export const GroupDetailPage: React.FC = () => {
           currentUser={user}
           onClose={() => setShowAddExpenseModal(false)}
           onExpenseAdded={handleExpenseAdded}
+        />
+      )}
+
+      {/* Add Member Modal */}
+      {showAddMemberModal && groupId && (
+        <AddMemberModal
+          groupId={groupId}
+          onClose={() => setShowAddMemberModal(false)}
+          onMemberAdded={handleMemberAdded}
         />
       )}
     </div>

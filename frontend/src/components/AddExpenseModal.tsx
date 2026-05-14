@@ -23,8 +23,9 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [paidBy, setPaidBy] = useState(currentUser?.id || '');
-  const [splitType, setSplitType] = useState<'equal' | 'custom'>('equal');
+  const [splitType, setSplitType] = useState<'equal' | 'custom' | 'percentage'>('equal');
   const [splits, setSplits] = useState<{ [key: string]: string }>({});
+  const [percentages, setPercentages] = useState<{ [key: string]: string }>({});
   const [splitAmong, setSplitAmong] = useState<string[]>(members.map(m => m.id));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -32,12 +33,23 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   useEffect(() => {
     // Initialize splits based on selected members
     const newSplits: { [key: string]: string } = {};
+    const newPercentages: { [key: string]: string } = {};
+    const numMembers = splitAmong.length;
+
     splitAmong.forEach(memberId => {
-      newSplits[memberId] = splitType === 'equal'
-        ? (parseFloat(amount) / splitAmong.length || 0).toFixed(2)
-        : splits[memberId] || '0.00';
+      if (splitType === 'equal') {
+        newSplits[memberId] = (parseFloat(amount) / numMembers || 0).toFixed(2);
+      } else if (splitType === 'percentage') {
+        const equalPercentage = (100 / numMembers).toFixed(2);
+        newPercentages[memberId] = equalPercentage;
+        newSplits[memberId] = ((parseFloat(amount) * parseFloat(equalPercentage)) / 100 || 0).toFixed(2);
+      } else {
+        newSplits[memberId] = splits[memberId] || '0.00';
+      }
     });
+    
     setSplits(newSplits);
+    setPercentages(newPercentages);
   }, [amount, splitType, splitAmong]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -78,15 +90,27 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       }
     }
 
+    if (splitType === 'percentage') {
+      const totalPercentage = Object.values(percentages)
+        .reduce((sum, val) => sum + parseFloat(val || '0'), 0);
+      const diff = Math.abs(totalPercentage - 100);
+      if (diff > 0.01) {
+        setError(
+          `Percentages (${totalPercentage.toFixed(2)}%) must equal 100%`
+        );
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       await expensesApi.create(groupId, {
         description: description.trim(),
         amount: parseFloat(amount),
         paid_by: paidBy,
-        split_type: splitType,
+        split_type: splitType === 'percentage' ? 'custom' : splitType,
         split_among: splitAmong,
-        splits: splitType === 'custom'
+        splits: (splitType === 'custom' || splitType === 'percentage')
           ? splitAmong.map(memberId => ({
             user_id: memberId,
             amount: parseFloat(splits[memberId] || '0'),
@@ -182,26 +206,36 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
           {/* Split Type */}
           <div>
             <label className="block text-sm font-medium mb-2">Split Type</label>
-            <div className="flex gap-4">
+            <div className="flex flex-col gap-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
                   value="equal"
                   checked={splitType === 'equal'}
-                  onChange={(e) => setSplitType(e.target.value as 'equal' | 'custom')}
+                  onChange={(e) => setSplitType(e.target.value as 'equal' | 'custom' | 'percentage')}
                   disabled={loading}
                 />
-                <span>Equal</span>
+                <span>Equal split</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value="percentage"
+                  checked={splitType === 'percentage'}
+                  onChange={(e) => setSplitType(e.target.value as 'equal' | 'custom' | 'percentage')}
+                  disabled={loading}
+                />
+                <span>Percentage split</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
                   value="custom"
                   checked={splitType === 'custom'}
-                  onChange={(e) => setSplitType(e.target.value as 'equal' | 'custom')}
+                  onChange={(e) => setSplitType(e.target.value as 'equal' | 'custom' | 'percentage')}
                   disabled={loading}
                 />
-                <span>Custom</span>
+                <span>Custom amounts</span>
               </label>
             </div>
           </div>
@@ -211,14 +245,40 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
             <label className="block text-sm font-medium mb-2">Split Among</label>
             <div className="space-y-2 bg-gray-50 p-3 rounded-md max-h-40 overflow-y-auto">
               {members.map(member => (
-                <label key={member.id} className="flex items-center gap-2 cursor-pointer">
+                <div key={member.id} className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     checked={splitAmong.includes(member.id)}
                     onChange={() => handleSplitAmongToggle(member.id)}
                     disabled={loading}
+                    className="w-4 h-4"
                   />
-                  <span className="flex-1">{member.name}</span>
+                  <span className="flex-1 text-sm">{member.name}</span>
+                  
+                  {splitType === 'percentage' && splitAmong.includes(member.id) && (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        value={percentages[member.id] || '0.00'}
+                        onChange={(e) => {
+                          const newPercentages = { ...percentages };
+                          newPercentages[member.id] = e.target.value;
+                          setPercentages(newPercentages);
+                          // Update splits based on percentage
+                          const newSplits = { ...splits };
+                          newSplits[member.id] = ((parseFloat(amount) * parseFloat(e.target.value)) / 100 || 0).toFixed(2);
+                          setSplits(newSplits);
+                        }}
+                        disabled={loading}
+                        className="w-16 h-8 rounded-md border border-input px-2 py-1 text-sm"
+                      />
+                      <span className="text-xs text-gray-500 w-4">%</span>
+                    </div>
+                  )}
+
                   {splitType === 'custom' && splitAmong.includes(member.id) && (
                     <input
                       type="number"
@@ -232,12 +292,11 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                       placeholder="0.00"
                     />
                   )}
+
                   {splitType === 'equal' && splitAmong.includes(member.id) && (
-                    <span className="text-sm text-muted-foreground">
-                      ₹{splits[member.id] || '0.00'}
-                    </span>
+                    <span className="text-sm text-gray-500">₹{splits[member.id] || '0.00'}</span>
                   )}
-                </label>
+                </div>
               ))}
             </div>
           </div>
