@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Expense } from '../types';
 import { formatDistanceToNow } from 'date-fns';
-import { Banknote } from 'lucide-react';
+import { Banknote, Trash2 } from 'lucide-react';
+import { Button } from './ui/button';
+import { DeleteExpenseModal } from './DeleteExpenseModal';
 
 interface ExpensesListProps {
   expenses: Expense[];
+  groupId: string;
+  onExpenseDeleted?: () => void;
 }
 
-export const ExpensesList: React.FC<ExpensesListProps> = ({ expenses }) => {
+export const ExpensesList: React.FC<ExpensesListProps> = ({ expenses, groupId, onExpenseDeleted }) => {
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    expenseId?: string;
+    description?: string;
+  }>({ isOpen: false });
   if (!expenses || expenses.length === 0) {
     return null;
   }
@@ -41,12 +50,43 @@ export const ExpensesList: React.FC<ExpensesListProps> = ({ expenses }) => {
                 </p>
               </div>
             </div>
-            <div className="flex-shrink-0 text-right">
-              <p className="text-lg font-bold text-gray-900">₹{amount.toFixed(2)}</p>
+            <div className="flex-shrink-0 text-right gap-3 flex items-center">
+              <div>
+                <p className="text-lg font-bold text-gray-900">₹{amount.toFixed(2)}</p>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() =>
+                  setDeleteModal({
+                    isOpen: true,
+                    expenseId: expense.id,
+                    description: expense.description,
+                  })
+                }
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         );
       })}
+
+      {/* Delete Expense Modal */}
+      {deleteModal.expenseId && (
+        <DeleteExpenseModal
+          isOpen={deleteModal.isOpen}
+          onClose={() => setDeleteModal({ isOpen: false })}
+          expenseId={deleteModal.expenseId}
+          expenseDescription={deleteModal.description || ''}
+          groupId={groupId}
+          onSuccess={() => {
+            setDeleteModal({ isOpen: false });
+            onExpenseDeleted?.();
+          }}
+        />
+      )}
     </div>
   );
 };

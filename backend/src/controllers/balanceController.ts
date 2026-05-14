@@ -90,6 +90,35 @@ export const getGroupBalances = async (
     // === STEP 4: Calculate Balances ===
     const netBalances = calculateNetBalances(transactions, userNames);
 
+    // === STEP 4.5: Apply Settlements to Balances ===
+    // Fetch all settlements for this group
+    const settlements_records = await prisma.settlement.findMany({
+      where: { group_id: groupId },
+    });
+
+    // Apply each settlement to the balances
+    settlements_records.forEach((settlement: any) => {
+      const settlementAmount = parseFloat(settlement.amount.toString());
+      
+      // from_user paid money, so their balance increases (reduces their debt)
+      const fromBalance = netBalances.find(
+        (b) => b.user_id === settlement.from_user
+      );
+      if (fromBalance) {
+        fromBalance.net_balance = 
+          Math.round((fromBalance.net_balance + settlementAmount) * 100) / 100;
+      }
+
+      // to_user received money, so their balance decreases (reduces what they're owed)
+      const toBalance = netBalances.find(
+        (b) => b.user_id === settlement.to_user
+      );
+      if (toBalance) {
+        toBalance.net_balance = 
+          Math.round((toBalance.net_balance - settlementAmount) * 100) / 100;
+      }
+    });
+
     // === STEP 5: Simplify Debts ===
     const settlements = simplifyDebts(netBalances);
 
@@ -107,11 +136,23 @@ export const getGroupBalances = async (
       return;
     }
 
+    // === STEP 7.5: Filter out removed members ===
+    // Only show balances for users still in the group
+    const currentMemberIds = new Set(members.map((m: any) => m.user.id));
+    const filteredBalances = netBalances.filter(
+      (balance) => currentMemberIds.has(balance.user_id)
+    );
+    const filteredSettlements = settlements.filter(
+      (settlement) =>
+        currentMemberIds.has(settlement.from_user_id) &&
+        currentMemberIds.has(settlement.to_user_id)
+    );
+
     // === STEP 8: Return Response ===
     res.status(200).json({
       group_id: groupId,
-      balances: netBalances,
-      settlements: settlements,
+      balances: filteredBalances,
+      settlements: filteredSettlements,
       expense_breakdown: expenseBreakdown,
       summary: {
         total_expenses: expenses.length,
@@ -119,7 +160,7 @@ export const getGroupBalances = async (
           (sum: number, exp: any) => sum + parseFloat(exp.amount.toString()),
           0
         ),
-        settlements_needed: settlements.length,
+        settlements_needed: filteredSettlements.length,
       },
     });
   } catch (error) {
@@ -253,6 +294,9 @@ export const recordSettlement = async (
 
     // === STEP 4: Emit Socket.io events ===
     emitSettlementRecorded(groupId, responseData);
+    
+    // Also emit balance update so frontend gets latest balances
+    emitBalancesUpdated(groupId, { message: 'Balances updated after settlement' });
   } catch (error) {
     console.error('Record settlement error:', error);
     res.status(500).json({ error: 'Internal server error' });

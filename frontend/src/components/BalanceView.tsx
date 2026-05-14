@@ -2,13 +2,27 @@ import React, { useState } from 'react';
 import type { BalanceResponse } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
 import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
+import { Button } from './ui/button';
+import { RecordSettlementModal } from './RecordSettlementModal';
 
 interface BalanceViewProps {
   balances: BalanceResponse;
+  groupId: string;
+  onSettlementRecorded?: () => void;
 }
 
-export const BalanceView: React.FC<BalanceViewProps> = ({ balances }) => {
+export const BalanceView: React.FC<BalanceViewProps> = ({ balances, groupId, onSettlementRecorded }) => {
   const [expandedBreakdown, setExpandedBreakdown] = useState(true);
+  const [settlementModal, setSettlementModal] = useState<{
+    isOpen: boolean;
+    settlement?: {
+      from_user_id: string;
+      from_user_name: string;
+      to_user_id: string;
+      to_user_name: string;
+      amount: number;
+    };
+  }>({ isOpen: false });
 
   if (!balances) {
     return null;
@@ -38,7 +52,7 @@ export const BalanceView: React.FC<BalanceViewProps> = ({ balances }) => {
                 return (
                   <div
                     key={idx}
-                    className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200"
+                    className="flex items-center justify-between gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200"
                   >
                     <div className="flex-1">
                       <p className="font-medium">
@@ -46,10 +60,27 @@ export const BalanceView: React.FC<BalanceViewProps> = ({ balances }) => {
                         <span className="text-gray-500 mx-2">pays</span>
                         <span className="text-blue-900">{settlement.to_user_name}</span>
                       </p>
+                      <p className="text-lg font-bold text-green-600 mt-1">
+                        ₹{amount.toFixed(2)}
+                      </p>
                     </div>
-                    <p className="text-lg font-bold text-green-600">
-                      ₹{amount.toFixed(2)}
-                    </p>
+                    <Button
+                      onClick={() =>
+                        setSettlementModal({
+                          isOpen: true,
+                          settlement: {
+                            from_user_id: settlement.from_user_id,
+                            from_user_name: settlement.from_user_name,
+                            to_user_id: settlement.to_user_id,
+                            to_user_name: settlement.to_user_name,
+                            amount,
+                          },
+                        })
+                      }
+                      className="whitespace-nowrap"
+                    >
+                      Record
+                    </Button>
                   </div>
                 );
               })}
@@ -196,6 +227,20 @@ export const BalanceView: React.FC<BalanceViewProps> = ({ balances }) => {
             </CardContent>
           )}
         </Card>
+      )}
+
+      {/* Record Settlement Modal */}
+      {settlementModal.settlement && (
+        <RecordSettlementModal
+          isOpen={settlementModal.isOpen}
+          onClose={() => setSettlementModal({ isOpen: false })}
+          settlement={settlementModal.settlement}
+          groupId={groupId}
+          onSuccess={() => {
+            setSettlementModal({ isOpen: false });
+            onSettlementRecorded?.();
+          }}
+        />
       )}
     </div>
   );

@@ -449,6 +449,7 @@ export const deleteExpense = async (
   try {
     const userId = req.userId as string;
     const expenseId = req.params.expenseId as string;
+    const groupId = req.params.groupId as string;
 
     // Get expense to check group membership
     const expense = await prisma.expense.findUnique({
@@ -461,11 +462,13 @@ export const deleteExpense = async (
       return;
     }
 
+    const actualGroupId = groupId || expense.group_id;
+
     // Check if user is a member of the group
     const membership = await prisma.groupMember.findFirst({
       where: {
         user_id: userId,
-        group_id: expense.group_id,
+        group_id: actualGroupId,
       },
     });
 
@@ -480,6 +483,14 @@ export const deleteExpense = async (
     });
 
     res.status(200).json({ message: 'Expense deleted successfully' });
+
+    // Emit socket events
+    emitExpenseCreated(actualGroupId, { 
+      message: 'Expense deleted',
+      expenseId: expenseId,
+      deleted: true 
+    });
+    emitBalancesUpdated(actualGroupId, { message: 'Balances updated after expense deletion' });
   } catch (error) {
     console.error('Delete expense error:', error);
     res.status(500).json({ error: 'Internal server error' });

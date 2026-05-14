@@ -7,10 +7,12 @@ import type { Group, Expense, BalanceResponse, Activity, SettlementRecord } from
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { Tabs, TabContent } from '../components/ui/tabs';
-import { ArrowLeft, Plus, DollarSign, Users, Clock } from 'lucide-react';
+import { ArrowLeft, Plus, DollarSign, Users, Clock, Trash2 } from 'lucide-react';
 import { AddExpenseModal } from '../components/AddExpenseModal';
 import { AddMemberModal } from '../components/AddMemberModal';
+import { DeleteGroupModal } from '../components/DeleteGroupModal';
 import { BalanceView } from '../components/BalanceView';
+import { DebtGraph } from '../components/DebtGraph';
 import { ExpensesList } from '../components/ExpensesList';
 import { ExpensesFilters } from '../components/ExpensesFilters';
 import { MembersList } from '../components/MembersList';
@@ -32,6 +34,7 @@ export const GroupDetailPage: React.FC = () => {
   const [error, setError] = useState('');
   const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [showDeleteGroupModal, setShowDeleteGroupModal] = useState(false);
 
   const fetchGroupData = async () => {
     if (!groupId) {
@@ -97,6 +100,10 @@ export const GroupDetailPage: React.FC = () => {
           },
           onMemberAdded: (data) => {
             showInfo('New member added: ' + (data.member?.name || 'Someone'));
+            fetchGroupData(); // Refresh data
+          },
+          onBalancesUpdated: () => {
+            console.log('📊 Balances updated, refreshing...');
             fetchGroupData(); // Refresh data
           },
         });
@@ -198,6 +205,14 @@ export const GroupDetailPage: React.FC = () => {
                 <Plus className="h-4 w-4 mr-2" />
                 Add Expense
               </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setShowDeleteGroupModal(true)}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
             </div>
           </div>
         </div>
@@ -288,7 +303,11 @@ export const GroupDetailPage: React.FC = () => {
                       )}
                     </div>
                   ) : (
-                    <ExpensesList expenses={filteredExpenses} />
+                    <ExpensesList 
+                      expenses={filteredExpenses}
+                      groupId={groupId}
+                      onExpenseDeleted={() => fetchGroupData()}
+                    />
                   )}
                 </div>
               </CardContent>
@@ -298,7 +317,26 @@ export const GroupDetailPage: React.FC = () => {
             <TabContent tabId="balances">
               <CardContent className="pt-6">
                 {balances ? (
-                  <BalanceView balances={balances} />
+                  <div className="space-y-8">
+                    {/* Debt Graph */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">Debt Graph</h3>
+                      <DebtGraph 
+                        balances={balances.balances || []} 
+                        settlements={balances.settlements || []}
+                      />
+                    </div>
+
+                    {/* Balance Details */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">Balance Details</h3>
+                      <BalanceView 
+                        balances={balances} 
+                        groupId={groupId}
+                        onSettlementRecorded={() => fetchGroupData()}
+                      />
+                    </div>
+                  </div>
                 ) : (
                   <p className="text-muted-foreground">Loading balances...</p>
                 )}
@@ -337,7 +375,11 @@ export const GroupDetailPage: React.FC = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <MembersList members={group.members} />
+                <MembersList 
+                  members={group.members}
+                  groupId={groupId}
+                  onMemberRemoved={() => fetchGroupData()}
+                />
               </CardContent>
             </Card>
           </div>
@@ -361,6 +403,16 @@ export const GroupDetailPage: React.FC = () => {
           groupId={groupId}
           onClose={() => setShowAddMemberModal(false)}
           onMemberAdded={handleMemberAdded}
+        />
+      )}
+
+      {/* Delete Group Modal */}
+      {group && (
+        <DeleteGroupModal
+          isOpen={showDeleteGroupModal}
+          onClose={() => setShowDeleteGroupModal(false)}
+          groupId={groupId || ''}
+          groupName={group.name}
         />
       )}
     </div>
