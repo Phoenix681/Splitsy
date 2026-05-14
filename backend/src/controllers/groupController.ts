@@ -1,6 +1,7 @@
 import type { Response } from 'express';
 import { prisma } from '../server.js';
 import type { AuthRequest, CreateGroupBody, AddMemberBody } from '../types/index.js';
+import { emitMemberAdded } from '../utils/socketEmitter.js';
 
 /**
  * Create a new group
@@ -249,15 +250,20 @@ export const addMemberToGroup = async (
       },
     });
 
+    const memberData = {
+      id: userToAdd.id,
+      name: userToAdd.name,
+      email: userToAdd.email,
+      joined_at: newMembership.joined_at,
+    };
+
     res.status(201).json({
       message: 'Member added successfully',
-      member: {
-        id: userToAdd.id,
-        name: userToAdd.name,
-        email: userToAdd.email,
-        joined_at: newMembership.joined_at,
-      },
+      member: memberData,
     });
+
+    // Emit Socket.io event to notify group members
+    emitMemberAdded(groupId, memberData);
   } catch (error) {
     console.error('Add member error:', error);
     res.status(500).json({ error: 'Internal server error' });

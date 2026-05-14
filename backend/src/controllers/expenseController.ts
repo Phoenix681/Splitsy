@@ -10,6 +10,7 @@ import {
   validatePercentages,
   calculatePercentageSplits,
 } from '../utils/expenseValidation.js';
+import { emitExpenseCreated, emitBalancesUpdated } from '../utils/socketEmitter.js';
 
 /**
  * Create a new expense with splits
@@ -229,20 +230,25 @@ export const createExpense = async (
     });
 
     // === STEP 5: Return Response ===
+    const responseData = {
+      id: result.expense.id,
+      description: result.expense.description,
+      amount: result.expense.amount,
+      paid_by: result.expense.paid_by,
+      created_at: result.expense.created_at,
+      splits: result.splits.map((split: any) => ({
+        user_id: split.user_id,
+        amount: split.amount,
+      })),
+    };
+
     res.status(201).json({
       message: 'Expense created successfully',
-      expense: {
-        id: result.expense.id,
-        description: result.expense.description,
-        amount: result.expense.amount,
-        paid_by: result.expense.paid_by,
-        created_at: result.expense.created_at,
-        splits: result.splits.map((split: any) => ({
-          user_id: split.user_id,
-          amount: split.amount,
-        })),
-      },
+      expense: responseData,
     });
+
+    // === STEP 6: Emit Socket.io event to notify group members ===
+    emitExpenseCreated(groupId, responseData);
   } catch (error) {
     console.error('Create expense error:', error);
     res.status(500).json({ error: 'Internal server error' });

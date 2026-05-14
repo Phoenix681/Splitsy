@@ -1,9 +1,7 @@
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import type { JWTPayload } from '../types/index.js';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-change-in-production';
-const JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '7d';
+import { JWT_SECRET, JWT_EXPIRES_IN } from '../config/constants.js';
 
 /**
  * Hash a plain text password using bcrypt

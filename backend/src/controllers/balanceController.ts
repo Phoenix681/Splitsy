@@ -7,6 +7,7 @@ import {
   calculateExpenseBreakdown,
   validateBalancesSum,
 } from '../utils/balanceCalculation.js';
+import { emitSettlementRecorded, emitBalancesUpdated } from '../utils/socketEmitter.js';
 
 /**
  * Get balances and settlement suggestions for a group
@@ -231,22 +232,27 @@ export const recordSettlement = async (
       },
     });
 
+    const responseData = {
+      id: settlement.id,
+      from: {
+        id: from_user_id,
+        name: fromUserMembership.user.name,
+      },
+      to: {
+        id: to_user_id,
+        name: toUserMembership.user.name,
+      },
+      amount: settlement.amount.toString(),
+      settled_at: settlement.settled_at,
+    };
+
     res.status(201).json({
       message: 'Settlement recorded successfully',
-      settlement: {
-        id: settlement.id,
-        from: {
-          id: from_user_id,
-          name: fromUserMembership.user.name,
-        },
-        to: {
-          id: to_user_id,
-          name: toUserMembership.user.name,
-        },
-        amount: settlement.amount.toString(),
-        settled_at: settlement.settled_at,
-      },
+      settlement: responseData,
     });
+
+    // === STEP 4: Emit Socket.io events ===
+    emitSettlementRecorded(groupId, responseData);
   } catch (error) {
     console.error('Record settlement error:', error);
     res.status(500).json({ error: 'Internal server error' });

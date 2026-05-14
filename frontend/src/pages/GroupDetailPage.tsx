@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/authcontext';
 import { groupsApi, expensesApi, balancesApi } from '../services/apiService';
+import { initializeSocket, subscribeToGroupEvents, unsubscribeFromGroupEvents, disconnectSocket } from '../services/socket';
 import type { Group, Expense, BalanceResponse, Activity, SettlementRecord } from '../types';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
@@ -14,6 +15,7 @@ import { ExpensesList } from '../components/ExpensesList';
 import { ExpensesFilters } from '../components/ExpensesFilters';
 import { MembersList } from '../components/MembersList';
 import { ActivityTimeline } from '../components/ActivityTimeline';
+import { showInfo } from '../utils/notifications';
 
 export const GroupDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -76,6 +78,41 @@ export const GroupDetailPage: React.FC = () => {
 
   useEffect(() => {
     fetchGroupData();
+    
+    // Initialize Socket.io if we have a token
+    const token = localStorage.getItem('token');
+    if (token && groupId) {
+      try {
+        initializeSocket(token);
+        
+        // Subscribe to group events
+        subscribeToGroupEvents(groupId, {
+          onExpenseCreated: (data) => {
+            showInfo('New expense added by ' + (data.expense?.payer?.name || 'someone'));
+            fetchGroupData(); // Refresh data
+          },
+          onSettlementRecorded: (data) => {
+            showInfo('Settlement recorded: ' + (data.settlement?.from?.name || 'Someone') + ' paid ' + (data.settlement?.to?.name || 'someone'));
+            fetchGroupData(); // Refresh data
+          },
+          onMemberAdded: (data) => {
+            showInfo('New member added: ' + (data.member?.name || 'Someone'));
+            fetchGroupData(); // Refresh data
+          },
+        });
+      } catch (err) {
+        console.error('Socket.io initialization error:', err);
+      }
+    }
+
+    // Cleanup: Unsubscribe from events and disconnect when component unmounts
+    return () => {
+      if (groupId) {
+        unsubscribeFromGroupEvents(groupId);
+      }
+      // Don't disconnect on unmount since we might use it on other pages
+      // disconnectSocket();
+    };
   }, [groupId]);
 
   const handleExpenseAdded = async () => {

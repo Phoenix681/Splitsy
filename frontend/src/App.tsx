@@ -5,6 +5,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CreateGroupPage } from './pages/CreateGroupPage';
 import { GroupDetailPage } from './pages/GroupDetailPage';
+import { NotificationCenter } from './components/NotificationCenter';
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -105,6 +106,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <AppRoutes />
+        <NotificationCenter />
       </AuthProvider>
     </BrowserRouter>
   );
