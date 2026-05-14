@@ -47,6 +47,9 @@ export const createGroup = async (
       });
 
       return group;
+    },{
+      maxWait: 20000,
+      timeout: 20000
     });
 
     res.status(201).json({
