@@ -108,12 +108,14 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
         description: description.trim(),
         amount: parseFloat(amount),
         paid_by: paidBy,
-        split_type: splitType === 'percentage' ? 'custom' : splitType,
-        split_among: splitAmong,
+        split_type: splitType,
+        split_among: splitType === 'equal' ? splitAmong : undefined,
         splits: (splitType === 'custom' || splitType === 'percentage')
           ? splitAmong.map(memberId => ({
             user_id: memberId,
-            amount: parseFloat(splits[memberId] || '0'),
+            amount: splitType === 'percentage' 
+              ? parseFloat(percentages[memberId] || '0')
+              : parseFloat(splits[memberId] || '0'),
           }))
           : undefined,
       });

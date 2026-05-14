@@ -7,6 +7,8 @@ import {
   validateSplitAmounts,
   validateSplitsSum,
   calculateEqualSplits,
+  validatePercentages,
+  calculatePercentageSplits,
 } from '../utils/expenseValidation.js';
 
 /**
@@ -56,8 +58,8 @@ export const createExpense = async (
     }
 
     // Validate split_type
-    if (split_type !== 'equal' && split_type !== 'custom') {
-      res.status(400).json({ error: 'split_type must be "equal" or "custom"' });
+    if (split_type !== 'equal' && split_type !== 'custom' && split_type !== 'percentage') {
+      res.status(400).json({ error: 'split_type must be "equal", "custom", or "percentage"' });
       return;
     }
 
@@ -117,6 +119,45 @@ export const createExpense = async (
 
       // Calculate equal splits
       finalSplits = calculateEqualSplits(amount, split_among);
+    } else if (split_type === 'percentage') {
+      // Percentage split
+      if (!customSplits || customSplits.length === 0) {
+        res.status(400).json({
+          error: 'splits array is required for percentage split (should contain user_id and amount as percentage)',
+        });
+        return;
+      }
+
+      // Validate percentages
+      const percentages = customSplits.map((s: SplitDetail) => ({
+        user_id: s.user_id,
+        percentage: s.amount,
+      }));
+
+      const percentageValidation = validatePercentages(percentages);
+      if (!percentageValidation.isValid) {
+        res.status(400).json({ error: percentageValidation.error });
+        return;
+      }
+
+      // Verify all users in splits are group members
+      const userIdsInSplits = customSplits.map((s: SplitDetail) => s.user_id);
+      const membersInSplits = await prisma.groupMember.findMany({
+        where: {
+          group_id: groupId,
+          user_id: { in: userIdsInSplits },
+        },
+      });
+
+      if (membersInSplits.length !== userIdsInSplits.length) {
+        res.status(400).json({
+          error: 'All users in splits must be members of the group',
+        });
+        return;
+      }
+
+      // Calculate actual amounts from percentages
+      finalSplits = calculatePercentageSplits(amount, percentages);
     } else {
       // Custom split
       if (!customSplits || customSplits.length === 0) {

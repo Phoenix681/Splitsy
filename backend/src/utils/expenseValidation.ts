@@ -126,6 +126,81 @@ export const calculateEqualSplits = (
 };
 
 /**
+ * Validate percentages
+ * All percentages must be positive and sum to 100% (with tolerance)
+ */
+export const validatePercentages = (
+  percentages: { user_id: string; percentage: number }[]
+): { isValid: boolean; error?: string } => {
+  if (!percentages || percentages.length === 0) {
+    return { isValid: false, error: 'At least one percentage is required' };
+  }
+
+  let totalPercentage = 0;
+  for (const p of percentages) {
+    if (typeof p.percentage !== 'number' || isNaN(p.percentage)) {
+      return { isValid: false, error: 'All percentages must be valid numbers' };
+    }
+
+    if (p.percentage < 0 || p.percentage > 100) {
+      return { isValid: false, error: 'Percentages must be between 0 and 100' };
+    }
+
+    // Check decimal places
+    const decimalPlaces = (p.percentage.toString().split('.')[1] || '').length;
+    if (decimalPlaces > 2) {
+      return {
+        isValid: false,
+        error: 'Percentages can have maximum 2 decimal places',
+      };
+    }
+
+    totalPercentage += p.percentage;
+  }
+
+  // Check if total is 100% (allow 0.01% tolerance)
+  const roundedTotal = Math.round(totalPercentage * 100) / 100;
+  const diff = Math.abs(roundedTotal - 100);
+  if (diff > 0.01) {
+    return {
+      isValid: false,
+      error: `Percentages (${roundedTotal}%) must equal 100%`,
+    };
+  }
+
+  return { isValid: true };
+};
+
+/**
+ * Calculate percentage-based splits
+ * Converts percentages to actual amounts
+ */
+export const calculatePercentageSplits = (
+  totalAmount: number,
+  percentages: { user_id: string; percentage: number }[]
+): SplitDetail[] => {
+  if (!percentages || percentages.length === 0) {
+    return [];
+  }
+
+  const splits: SplitDetail[] = percentages.map(p => ({
+    user_id: p.user_id,
+    amount: Math.round((totalAmount * p.percentage) / 100 * 100) / 100,
+  }));
+
+  // Calculate rounding difference
+  const totalSplit = splits.reduce((sum, split) => sum + split.amount, 0);
+  const difference = Math.round((totalAmount - totalSplit) * 100) / 100;
+
+  // Add difference to first person's split
+  if (difference !== 0) {
+    splits[0]!.amount = Math.round((splits[0]!.amount + difference) * 100) / 100;
+  }
+
+  return splits;
+};
+
+/**
  * Validate expense description
  */
 export const validateExpenseDescription = (

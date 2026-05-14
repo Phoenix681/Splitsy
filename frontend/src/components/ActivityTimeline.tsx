@@ -1,14 +1,14 @@
 import React from 'react';
-import type { Expense } from '../types';
+import type { Activity } from '../types';
 import { formatDistanceToNow, format } from 'date-fns';
-import { Clock, Plus } from 'lucide-react';
+import { Clock, Plus, ArrowRight } from 'lucide-react';
 
 interface ActivityTimelineProps {
-  expenses: Expense[];
+  activities: Activity[];
 }
 
-export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ expenses }) => {
-  if (!expenses || expenses.length === 0) {
+export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities }) => {
+  if (!activities || activities.length === 0) {
     return (
       <div className="text-center py-12">
         <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
@@ -18,24 +18,31 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ expenses }) 
   }
 
   // Sort by date descending (newest first)
-  const sortedExpenses = [...expenses].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
+  const sortedActivities = [...activities].sort((a, b) => {
+    const dateA = a.type === 'expense' ? a.created_at : a.settled_at;
+    const dateB = b.type === 'expense' ? b.created_at : b.settled_at;
+    return new Date(dateB).getTime() - new Date(dateA).getTime();
+  });
 
   return (
     <div className="space-y-0">
-      {sortedExpenses.map((expense, index) => {
-        const amount = typeof expense.amount === 'string'
-          ? parseFloat(expense.amount)
-          : expense.amount;
-        const isLast = index === sortedExpenses.length - 1;
+      {sortedActivities.map((activity, index) => {
+        const isLast = index === sortedActivities.length - 1;
+        const isExpense = activity.type === 'expense';
+        const timestamp = isExpense ? activity.created_at : activity.settled_at;
 
         return (
-          <div key={expense.id} className="flex gap-4">
+          <div key={activity.id} className="flex gap-4">
             {/* Timeline line and dot */}
             <div className="flex flex-col items-center">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white flex-shrink-0">
-                <Plus className="h-5 w-5" />
+              <div className={`flex items-center justify-center w-10 h-10 rounded-full text-white flex-shrink-0 ${
+                isExpense ? 'bg-blue-500' : 'bg-green-500'
+              }`}>
+                {isExpense ? (
+                  <Plus className="h-5 w-5" />
+                ) : (
+                  <ArrowRight className="h-5 w-5" />
+                )}
               </div>
               {!isLast && (
                 <div className="w-0.5 h-12 bg-gray-200 mt-2" />
@@ -47,29 +54,47 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ expenses }) 
               <div className="bg-white rounded-lg border p-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-medium text-gray-900">
-                      {expense.payer?.name || 'Unknown'} added an expense
-                    </p>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {expense.description}
-                    </p>
-                    <div className="mt-2 flex items-center gap-2 flex-wrap">
-                      <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                        ₹{amount.toFixed(2)}
-                      </span>
-                      {expense.splits && expense.splits.length > 0 && (
-                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                          Split among {expense.splits.length} people
-                        </span>
-                      )}
-                    </div>
+                    {isExpense ? (
+                      <>
+                        <p className="font-medium text-gray-900">
+                          {activity.payer?.name || 'Unknown'} added an expense
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {activity.description}
+                        </p>
+                        <div className="mt-2 flex items-center gap-2 flex-wrap">
+                          <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                            ₹{parseFloat(activity.amount).toFixed(2)}
+                          </span>
+                          {activity.splits && activity.splits.length > 0 && (
+                            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                              Split among {activity.splits.length} people
+                            </span>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-medium text-gray-900">
+                          {activity.from?.name || 'Unknown'} settled with {activity.to?.name || 'Unknown'}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Payment recorded
+                        </p>
+                        <div className="mt-2 flex items-center gap-2 flex-wrap">
+                          <span className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded">
+                            ₹{parseFloat(activity.amount).toFixed(2)}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-xs text-muted-foreground whitespace-nowrap">
-                      {formatDistanceToNow(new Date(expense.created_at), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(timestamp), { addSuffix: true })}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {format(new Date(expense.created_at), 'MMM d, yyyy')}
+                      {format(new Date(timestamp), 'MMM d, yyyy')}
                     </p>
                   </div>
                 </div>

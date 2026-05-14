@@ -65,10 +65,33 @@ export interface CreateExpenseData {
   description: string;
   amount: number;
   paid_by: string;
-  split_type: 'equal' | 'custom';
+  split_type: 'equal' | 'custom' | 'percentage';
   splits?: { user_id: string; amount: number }[];
   split_among?: string[];
 }
+
+// Settlement types
+export interface SettlementRecord {
+  id: string;
+  from: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  to: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  amount: string;
+  settled_at: string;
+}
+
+// Activity types (unified feed)
+export type Activity = 
+  | (Expense & { type: 'expense' })
+  | (SettlementRecord & { type: 'settlement' });
+
 
 // Balance types
 export interface UserBalance {

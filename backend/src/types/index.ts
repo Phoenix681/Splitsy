@@ -65,8 +65,8 @@ export interface CreateExpenseBody {
   description: string;
   amount: number;
   paid_by: string; // user_id of payer
-  split_type: 'equal' | 'custom';
-  splits?: SplitDetail[]; // Required if split_type is 'custom'
+  split_type: 'equal' | 'custom' | 'percentage';
+  splits?: SplitDetail[]; // Required if split_type is 'custom' or 'percentage'
   split_among?: string[]; // User IDs to split equally among (if split_type is 'equal')
 }
 

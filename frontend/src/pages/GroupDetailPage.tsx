@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/authcontext';
 import { groupsApi, expensesApi, balancesApi } from '../services/apiService';
-import type { Group, Expense, BalanceResponse } from '../types';
+import type { Group, Expense, BalanceResponse, Activity, SettlementRecord } from '../types';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { Tabs, TabContent } from '../components/ui/tabs';
@@ -23,6 +23,8 @@ export const GroupDetailPage: React.FC = () => {
   const [group, setGroup] = useState<Group | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
+  const [settlements, setSettlements] = useState<SettlementRecord[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [balances, setBalances] = useState<BalanceResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -48,9 +50,20 @@ export const GroupDetailPage: React.FC = () => {
       const expensesRes = await expensesApi.getGroupExpenses(groupId);
       setExpenses(expensesRes.expenses);
       
+      // Fetch settlement history
+      const settlementRes = await balancesApi.getSettlementHistory(groupId);
+      setSettlements(settlementRes.settlements);
+      
       // Then fetch balances
       const balancesRes = await balancesApi.getGroupBalances(groupId);
       setBalances(balancesRes);
+      
+      // Combine expenses and settlements into unified activity feed
+      const combinedActivities: Activity[] = [
+        ...expensesRes.expenses.map(e => ({ ...e, type: 'expense' as const })),
+        ...settlementRes.settlements.map(s => ({ ...s, type: 'settlement' as const })),
+      ];
+      setActivities(combinedActivities);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: string } } };
       const errorMessage = error.response?.data?.error || 'Failed to load group details';
@@ -258,7 +271,7 @@ export const GroupDetailPage: React.FC = () => {
             {/* Activity Tab */}
             <TabContent tabId="activity">
               <CardContent className="pt-6">
-                <ActivityTimeline expenses={expenses} />
+                <ActivityTimeline activities={activities} />
               </CardContent>
             </TabContent>
           </Tabs>
